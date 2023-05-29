@@ -27,8 +27,13 @@ public:
     Bitset &flip();
     Bitset &flip(ull);
 
-    //
+    // === element access ===
     bool operator[](ull) const;
+    bool all() const;
+    bool any() const;
+    bool none() const;
+    ull count() const;
+
     // === bitwise operators ===
     Bitset<bit_count> operator&(Bitset<bit_count> &rhs);
     Bitset<bit_count> operator|(Bitset<bit_count> &rhs);
@@ -126,11 +131,56 @@ Bitset<bit_count> &Bitset<bit_count>::flip(ull n)
 
 // =========== $$$ ===============
 
+// =========== element access ===============
 template <ull bit_count>
 bool Bitset<bit_count>::operator[](ull pos) const
 {
     return (_arr[pos / (sizeof(char) * 8)] >> pos % (sizeof(char) * 8)) & 1;
 }
+template <ull bit_count>
+bool Bitset<bit_count>::all() const
+{
+    for (int i = 0; i < bit_count; ++i)
+    {
+        if (this->operator[](i) == 0)
+            return false;
+    }
+    return true;
+}
+template <ull bit_count>
+bool Bitset<bit_count>::any() const
+{
+    for (int i = 0; i < bit_count; ++i)
+    {
+        if (this->operator[](i) == 1)
+            return true;
+    }
+    return false;
+}
+template <ull bit_count>
+bool Bitset<bit_count>::none() const
+{
+    for (int i = 0; i < bit_count; ++i)
+    {
+        if (this->operator[](i) == 1)
+            return false;
+    }
+    return true;
+}
+template <ull bit_count>
+ull Bitset<bit_count>::count() const
+{
+    ull c = 0;
+    for (int i = 0; i < bit_count; ++i)
+    {
+        if (this->operator[](i) == 1)
+            c++;
+    }
+    return c;
+}
+// =========== $$$ ===============
+
+// =========== bitwise operators ============
 template <ull bit_count>
 Bitset<bit_count> Bitset<bit_count>::operator&(Bitset<bit_count> &rhs)
 {
@@ -138,6 +188,30 @@ Bitset<bit_count> Bitset<bit_count>::operator&(Bitset<bit_count> &rhs)
     for (int i = 0; i < bit_count; ++i)
     {
         (this->operator[](i) == 1 && rhs[i] == 1)
+            ? ans.set(i)
+            : ans.reset(i);
+    }
+    return ans;
+}
+template <ull bit_count>
+Bitset<bit_count> Bitset<bit_count>::operator|(Bitset<bit_count> &rhs)
+{
+    Bitset<bit_count> ans;
+    for (int i = 0; i < bit_count; ++i)
+    {
+        (this->operator[](i) == 1 || rhs[i] == 1)
+            ? ans.set(i)
+            : ans.reset(i);
+    }
+    return ans;
+}
+template <ull bit_count>
+Bitset<bit_count> Bitset<bit_count>::operator^(Bitset<bit_count> &rhs)
+{
+    Bitset<bit_count> ans;
+    for (int i = 0; i < bit_count; ++i)
+    {
+        (this->operator[](i) != rhs[i])
             ? ans.set(i)
             : ans.reset(i);
     }
@@ -243,30 +317,5 @@ Bitset<((bit_count > bit_count2) ? bit_count : bit_count2)> Bitset<bit_count>::o
 }
 
 // ============   $$$ ==============
-
-template <ull bit_count>
-Bitset<bit_count> Bitset<bit_count>::operator|(Bitset<bit_count> &rhs)
-{
-    Bitset<bit_count> ans;
-    for (int i = 0; i < bit_count; ++i)
-    {
-        (this->operator[](i) == 1 || rhs[i] == 1)
-            ? ans.set(i)
-            : ans.reset(i);
-    }
-    return ans;
-}
-template <ull bit_count>
-Bitset<bit_count> Bitset<bit_count>::operator^(Bitset<bit_count> &rhs)
-{
-    Bitset<bit_count> ans;
-    for (int i = 0; i < bit_count; ++i)
-    {
-        (this->operator[](i) != rhs[i])
-            ? ans.set(i)
-            : ans.reset(i);
-    }
-    return ans;
-}
 
 #endif

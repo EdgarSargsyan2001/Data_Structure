@@ -35,4 +35,5 @@ int main()
     std::cout << "a & b : " << (a & b) << "\n";
     std::cout << "b | a : " << (b | a) << "\n";
     std::cout << "a ^ b : " << (a ^ b) << "\n";
+    std::cout << "b -> count: " << b.count() << "\n";
 }
