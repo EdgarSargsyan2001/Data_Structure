@@ -1,7 +1,9 @@
 #pragma one
 #include <iostream>
 
-template <class T> class Node {
+template <class T>
+class Node
+{
 public:
   Node(const T &_val) : val(_val), next(nullptr), prev(nullptr) {}
 
@@ -9,7 +11,9 @@ public:
   T val;
 };
 
-template <class T> class List {
+template <class T>
+class List
+{
 public:
   List();
   ~List();
@@ -31,24 +35,31 @@ private:
   int size;
 };
 
-template <class T> List<T>::List() : size(0), head(nullptr), tail(nullptr) {}
+template <class T>
+List<T>::List() : size(0), head(nullptr), tail(nullptr) {}
 
-template <class T> List<T>::~List() {
-  while (head != nullptr) {
+template <class T>
+List<T>::~List()
+{
+  while (head != nullptr)
+  {
     Node<T> *tmp = head;
     head = head->next;
     delete tmp;
   }
 }
 
-template <class T> void List<T>::Push_front(const Node<T> &val) {
+template <class T>
+void List<T>::Push_front(const Node<T> &val)
+{
   Node<T> *tmp = new Node<T>(val);
 
   tmp->next = head;
 
   if (head == nullptr)
     head = tail = tmp;
-  else {
+  else
+  {
     head->prev = tmp;
   }
 
@@ -56,14 +67,17 @@ template <class T> void List<T>::Push_front(const Node<T> &val) {
   size++;
 }
 
-template <class T> void List<T>::Push_back(const Node<T> &val) {
+template <class T>
+void List<T>::Push_back(const Node<T> &val)
+{
   Node<T> *tmp = new Node<T>(val);
 
   tmp->prev = tail;
 
   if (tail == nullptr)
     tail = head = tmp;
-  else {
+  else
+  {
     tail->next = tmp;
   }
 
@@ -71,7 +85,9 @@ template <class T> void List<T>::Push_back(const Node<T> &val) {
   size++;
 }
 
-template <class T> void List<T>::Insert_after(Node<T> *l, const Node<T> &val) {
+template <class T>
+void List<T>::Insert_after(Node<T> *l, const Node<T> &val)
+{
   if (l == nullptr)
     return;
 
@@ -81,26 +97,34 @@ template <class T> void List<T>::Insert_after(Node<T> *l, const Node<T> &val) {
   tmp->prev = l;
   tmp->next = nxt;
 
-  if (nxt != nullptr) {
+  if (nxt != nullptr)
+  {
     nxt->prev = tmp;
-  } else {
+  }
+  else
+  {
     tail = tmp;
   }
   size++;
 }
 
 template <class T>
-void List<T>::Insert_after(const T &pos, const Node<T> &val) {
+void List<T>::Insert_after(const T &pos, const Node<T> &val)
+{
   Node<T> *l = head;
-  while (l != nullptr) {
-    if (l->val == pos) {
+  while (l != nullptr)
+  {
+    if (l->val == pos)
+    {
       break;
     }
     l = l->next;
   }
   Insert_after(l, val);
 }
-template <class T> void List<T>::Delete(Node<T> *node) {
+template <class T>
+void List<T>::Delete(Node<T> *node)
+{
   if (node == nullptr)
     return;
 
@@ -108,12 +132,14 @@ template <class T> void List<T>::Delete(Node<T> *node) {
 
   if (--size == 0)
     head = tail = nullptr;
-  else {
+  else
+  {
     if (node == head)
       head = head->next, head->prev = nullptr;
     else if (node == tail)
       tail = tail->prev, tail->next = nullptr;
-    else {
+    else
+    {
       node->prev->next = node->next;
       node->next->prev = node->prev;
     }
@@ -122,11 +148,15 @@ template <class T> void List<T>::Delete(Node<T> *node) {
   delete tmp;
 }
 
-template <class T> void List<T>::Delete(const T &val) {
+template <class T>
+void List<T>::Delete(const T &val)
+{
 
   Node<T> *l = head;
-  while (l != nullptr) {
-    if (l->val == val) {
+  while (l != nullptr)
+  {
+    if (l->val == val)
+    {
       break;
     }
     l = l->next;
@@ -134,26 +164,33 @@ template <class T> void List<T>::Delete(const T &val) {
   Delete(l);
 }
 
-template <class T> Node<T>* List<T>::get_val_Ptr(const T& val) const {
+template <class T>
+Node<T> *List<T>::get_val_Ptr(const T &val) const
+{
   Node<T> *l = head;
-    while(l != nullptr){
-      if(l->val == val){
-        break;
-      }
-      l = l->next;
+  while (l != nullptr)
+  {
+    if (l->val == val)
+    {
+      break;
     }
-    return l;
+    l = l->next;
+  }
+  return l;
 }
 
-template <class T> void List<T>::Print() const {
+template <class T>
+void List<T>::Print() const
+{
   Node<T> *l = head;
-  std::cout<<"head-> "<<head<<"\n\n";
-  while (l != nullptr) {
+  std::cout << "head-> " << head << "\n\n";
+  while (l != nullptr)
+  {
     std::cout << l->val << " " << l << " == next-> " << l->next << "  prev-> "
               << l->prev << "\n";
 
     l = l->next;
   }
   std::cout << "\n";
-  std::cout<<"tail-> "<<tail<<"\n\n";
+  std::cout << "tail-> " << tail << "\n\n";
 }
