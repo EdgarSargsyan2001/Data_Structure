@@ -21,15 +21,15 @@ public:
   ~Forward_list();                             // dtor
 
   // insert
-  void insert_after(Node<T> *p, T val);                // O(1)
-  void insert_at(int pos, T val);                      // O(n)
-  void insert(int pos, std::initializer_list<T> list); // O(n)
-  void insert(int pos, T *arr, int N);                 // O(n)
-  void insert(int pos, const Forward_list &);          // O(n)
+  void insert_after(Node<T> *p, const T &val);         // O(1)
+  void insert_at(int pos, const T &val);               // O(n)
+  void insert(int pos, std::initializer_list<T> list); // O(n + m)
+  void insert(int pos, const T *arr, int N);           // O(n + m)
+  void insert(int pos, const Forward_list &);          // O(n + m)
 
   // push / pop
-  void push_front(T val); // O(1)
-  void pop_front();       // O(1)
+  void push_front(const T &val); // O(1)
+  void pop_front();              // O(1)
 
   // delete
   void delete_after(Node<T> *p); // O(1)
@@ -37,11 +37,14 @@ public:
   void remove(const T &val);     // O(n)
 
   // methods
-  bool empty() const;                // O(1)
-  void clear();                      // O(n)
-  T &front();                        // O(1)
-  void resize(int count, T val = 0); // O(n^2)
-  Node<T> *search(T val);            // O(n)
+  bool empty() const;                       // O(1)
+  void clear();                             // O(n)
+  T &front();                               // O(1)
+  void resize(int count, const T &val = 0); // O(n^2)
+  Node<T> *search(const T &val);            // O(n)
+  void reverse();                           // O(n)
+  bool has_cyrcl();                         //
+  void marge_to_sorted_list(Node<T> *);     // O( n + m)
 
   // operators
   Forward_list<T> &operator=(const Forward_list<T> &); // copy assignment
@@ -50,12 +53,13 @@ public:
   // getters
   Node<T> *head() const;
   Node<T> *tail() const;
+  Node<T> *get_middle_node() const; // O(n / 2)
 
   int size() const; // O(n)
 
 private:
   void copy(const Forward_list<T> &);                 // O(n)
-  void insert(int pos, Node<T> *start, Node<T> *end); // O(n)
+  void insert(int pos, Node<T> *start, Node<T> *end); // O(m)
 
 private:
   Node<T> *_head = nullptr;
@@ -124,10 +128,9 @@ T &Forward_list<T>::front()
 }
 
 template <class T>
-void Forward_list<T>::resize(int count, T val)
+void Forward_list<T>::resize(int count, const T &val)
 {
   int N = size();
-
   int interval = count - N;
 
   if (interval > 0)
@@ -153,7 +156,7 @@ void Forward_list<T>::resize(int count, T val)
 }
 
 template <class T>
-Node<T> *Forward_list<T>::search(T val)
+Node<T> *Forward_list<T>::search(const T &val)
 {
   Node<T> *ptr = _head;
   while (ptr != nullptr)
@@ -165,6 +168,82 @@ Node<T> *Forward_list<T>::search(T val)
     ptr = ptr->next;
   }
   return nullptr;
+}
+
+template <class T>
+void Forward_list<T>::reverse()
+{
+  if (_head)
+  {
+    Node<T> *prev = nullptr;
+    Node<T> *curr = _head;
+    Node<T> *next = _head->next;
+
+    while (next)
+    {
+      curr->next = prev;
+      prev = curr;
+      curr = next;
+      next = next->next;
+    }
+    curr->next = prev;
+
+    _head = curr;
+  }
+}
+
+template <class T>
+bool Forward_list<T>::has_cyrcl()
+{
+  if (_head == nullptr)
+  {
+    return false;
+  }
+  Node<T> *slow = _head;
+  Node<T> *fast = _head->next;
+  while (fast && fast->next)
+  {
+    if (fast == slow)
+    {
+      return true;
+    }
+    slow = slow->next;
+    fast = (fast->next)->next;
+  }
+  return false;
+}
+
+template <class T>
+void Forward_list<T>::marge_to_sorted_list(Node<T> *head2)
+{
+  if (_head)
+  {
+    Node<T> *ptr = _head;
+    while (ptr->info >= head2->info)
+    {
+      push_front(head2->info);
+      head2 = head2->next;
+      ptr = _head;
+    }
+
+    while (ptr && ptr->next && head2)
+    {
+      T val = head2->info;
+      if (ptr->info < val && ptr->next->info > val)
+      {
+        insert_after(ptr, val);
+        head2 = head2->next;
+      }
+      ptr = ptr->next;
+    }
+
+    while (head2)
+    {
+      insert_after(ptr, head2->info);
+      head2 = head2->next;
+      ptr = ptr->next;
+    }
+  }
 }
 
 // operators
@@ -206,6 +285,19 @@ Node<T> *Forward_list<T>::tail() const
 }
 
 template <class T>
+Node<T> *Forward_list<T>::get_middle_node() const
+{
+  Node<T> *fast = _head;
+  Node<T> *slow = _head;
+  while (fast && fast->next)
+  {
+    fast = fast->next->next;
+    slow = slow->next;
+  }
+  return slow;
+}
+
+template <class T>
 int Forward_list<T>::size() const
 {
   int i = 0;
@@ -219,13 +311,13 @@ int Forward_list<T>::size() const
 }
 
 template <class T>
-void Forward_list<T>::insert_after(Node<T> *p, T val)
+void Forward_list<T>::insert_after(Node<T> *p, const T &val)
 {
   p->next = new Node<T>(val, p->next);
 }
 
 template <class T>
-void Forward_list<T>::insert_at(int pos, T val)
+void Forward_list<T>::insert_at(int pos, const T &val)
 {
   if (pos == 0)
   {
@@ -258,7 +350,7 @@ void Forward_list<T>::insert(int pos, std::initializer_list<T> list)
 }
 
 template <class T>
-void Forward_list<T>::insert(int pos, T *arr, int N)
+void Forward_list<T>::insert(int pos, const T *arr, int N)
 {
   if (N > 0)
   {
@@ -293,26 +385,7 @@ void Forward_list<T>::insert(int pos, const Forward_list &li)
 }
 
 template <class T>
-void Forward_list<T>::insert(int pos, Node<T> *start, Node<T> *end)
-{
-  if (pos == 0)
-  {
-    end->next = _head;
-    _head = start;
-    return;
-  }
-
-  Node<T> *ptr = _head;
-  while (--pos && ptr->next != nullptr)
-  {
-    ptr = ptr->next;
-  }
-  end->next = ptr->next;
-  ptr->next = start;
-}
-
-template <class T>
-void Forward_list<T>::push_front(T val)
+void Forward_list<T>::push_front(const T &val)
 {
   _head = new Node<T>(val, _head);
 }
@@ -320,9 +393,12 @@ void Forward_list<T>::push_front(T val)
 template <class T>
 void Forward_list<T>::pop_front()
 {
-  Node<T> *tmp = _head;
-  _head = _head->next;
-  delete tmp;
+  if (_head)
+  {
+    Node<T> *tmp = _head;
+    _head = _head->next;
+    delete tmp;
+  }
 }
 
 template <class T>
@@ -373,21 +449,42 @@ template <class T>
 void Forward_list<T>::copy(const Forward_list<T> &rhs)
 {
   Node<T> *curr = rhs._head;
-  Node<T> *ptr = nullptr;
-  while (curr != nullptr)
+  if (!curr)
   {
-    if (_head == nullptr)
-    {
-      ptr = new Node<T>(curr->info);
-      _head = ptr;
-    }
-    else
-    {
-      ptr->next = new Node<T>(curr->info);
-      ptr = ptr->next;
-    }
+    return;
+  }
+  Node<T> *ptr = nullptr;
+  if (_head == nullptr)
+  {
+    ptr = new Node<T>(curr->info);
+    _head = ptr;
     curr = curr->next;
   }
+  while (curr != nullptr)
+  {
+    ptr->next = new Node<T>(curr->info);
+    ptr = ptr->next;
+    curr = curr->next;
+  }
+}
+
+template <class T>
+void Forward_list<T>::insert(int pos, Node<T> *start, Node<T> *end)
+{
+  if (pos == 0)
+  {
+    end->next = _head;
+    _head = start;
+    return;
+  }
+
+  Node<T> *ptr = _head;
+  while (--pos && ptr->next != nullptr)
+  {
+    ptr = ptr->next;
+  }
+  end->next = ptr->next;
+  ptr->next = start;
 }
 
 #endif // FORWARD_LIST_H
