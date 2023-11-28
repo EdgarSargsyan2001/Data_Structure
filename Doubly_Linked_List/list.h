@@ -252,7 +252,14 @@ void List<T>::pop_front()
   {
     Node<T> *tmp = _head;
     _head = _head->next;
-    _head->prev = nullptr;
+    if (_head)
+    {
+      _head->prev = nullptr;
+    }
+    else
+    {
+      _tail = _head = nullptr;
+    }
     _size--;
     delete tmp;
   }
@@ -265,7 +272,14 @@ void List<T>::pop_back()
   {
     Node<T> *tmp = _tail;
     _tail = _tail->prev;
-    _tail->next = nullptr;
+    if (_tail)
+    {
+      _tail->next = nullptr;
+    }
+    else
+    {
+      _tail = _head = nullptr;
+    }
     _size--;
     delete tmp;
   }
