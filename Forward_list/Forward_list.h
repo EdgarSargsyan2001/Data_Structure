@@ -5,14 +5,18 @@
 template <class T>
 struct Node
 {
-  Node(T d, Node<T> *p = nullptr) : info(d), next(p) {}
-  T info;
+  Node(T d, Node<T> *p = nullptr) : data(d), next(p) {}
+  T data;
   Node<T> *next;
 };
 
 template <class T>
 class Forward_list
 {
+public:
+  class iterator;
+  class const_iterator;
+
 public:
   Forward_list();                              // default ctor
   Forward_list(std::initializer_list<T> list); // initializer_list ctor
@@ -37,13 +41,16 @@ public:
   void remove(const T &val);     // O(n)
 
   // methods
-  bool empty() const;                       // O(1)
-  void clear();                             // O(n)
-  T &front();                               // O(1)
+  bool empty() const; // O(1)
+  void clear();       // O(n)
+  T &front();         // O(1)
+
   void resize(int count, const T &val = 0); // O(n^2)
-  Node<T> *search(const T &val);            // O(n)
+  iterator search(const T &val);            // O(n)
   void reverse();                           // O(n)
-  bool has_cyrcl();                         //
+  void reverse_rec(Node<int> *head);        // O(n) space complexity O(n)
+  bool has_cyrcl();                         // O(n)
+  iterator detect_cycle();                  // O(n)
   void marge_to_sorted_list(Node<T> *);     // O( n + m)
 
   // operators
@@ -51,11 +58,14 @@ public:
   Forward_list<T> &operator=(Forward_list<T> &&);      // move assignment
 
   // getters
-  Node<T> *head() const;
-  Node<T> *tail() const;
-  Node<T> *get_middle_node() const; // O(n / 2)
-
-  int size() const; // O(n)
+  iterator begin();                 // O(1)
+  iterator end();                   // O(1)
+  const_iterator cbegin();          // O(1)
+  const_iterator cend();            // O(1)
+  Node<T> *head() const;            // O(1)
+  Node<T> *tail() const;            // O(1)
+  iterator get_middle_node() const; // O(n / 2)
+  int size() const;                 // O(n)
 
 private:
   void copy(const Forward_list<T> &);                 // O(n)
@@ -63,6 +73,45 @@ private:
 
 private:
   Node<T> *_head = nullptr;
+
+public:
+  class iterator
+  {
+  public:
+    iterator() = default; // default ctor
+    iterator(Node<T> *);  // ctor
+
+    // operators
+    T &operator*();
+    T *operator->();
+    iterator &operator++();
+    iterator operator++(int);
+
+    bool operator!=(const iterator &other) const;
+    bool operator==(const iterator &other) const;
+
+  private:
+    Node<T> *_ptr = nullptr;
+  };
+
+  class const_iterator
+  {
+  public:
+    const_iterator() = default;
+    const_iterator(Node<T> *ptr);
+
+    // operators
+    const T &operator*() const;
+    const T *operator->() const;
+    const_iterator &operator++();
+    const_iterator operator++(int);
+
+    bool operator!=(const const_iterator &other) const;
+    bool operator==(const const_iterator &other) const;
+
+  private:
+    Node<T> *_ptr = nullptr;
+  };
 };
 
 template <class T>
@@ -124,7 +173,7 @@ void Forward_list<T>::clear()
 template <class T>
 T &Forward_list<T>::front()
 {
-  return _head->info;
+  return _head->data;
 }
 
 template <class T>
@@ -156,18 +205,18 @@ void Forward_list<T>::resize(int count, const T &val)
 }
 
 template <class T>
-Node<T> *Forward_list<T>::search(const T &val)
+typename Forward_list<T>::iterator Forward_list<T>::search(const T &val)
 {
   Node<T> *ptr = _head;
   while (ptr != nullptr)
   {
-    if (ptr->info == val)
+    if (ptr->data == val)
     {
-      return ptr;
+      return iterator{ptr};
     }
     ptr = ptr->next;
   }
-  return nullptr;
+  return end();
 }
 
 template <class T>
@@ -193,6 +242,19 @@ void Forward_list<T>::reverse()
 }
 
 template <class T>
+void Forward_list<T>::reverse_rec(Node<int> *node)
+{
+  if (node == nullptr || node->next == nullptr)
+  {
+    _head = node;
+    return;
+  }
+  reverse_rec(node->next);
+  node->next->next = node;
+  node->next = nullptr;
+}
+
+template <class T>
 bool Forward_list<T>::has_cyrcl()
 {
   if (_head == nullptr)
@@ -214,22 +276,45 @@ bool Forward_list<T>::has_cyrcl()
 }
 
 template <class T>
+typename Forward_list<T>::iterator Forward_list<T>::detect_cycle()
+{
+  Node<T> *slow = _head;
+  Node<T> *fast = _head;
+  while (fast && fast->next)
+  {
+    slow = slow->next;
+    fast = fast->next->next;
+    if (slow == fast)
+    {
+      fast = _head;
+      while (slow != fast)
+      {
+        slow = slow->next;
+        fast = fast->next;
+      }
+      return iterator{slow};
+    }
+  }
+  return end();
+}
+
+template <class T>
 void Forward_list<T>::marge_to_sorted_list(Node<T> *head2)
 {
   if (_head)
   {
     Node<T> *ptr = _head;
-    while (ptr->info >= head2->info)
+    while (ptr->data >= head2->data)
     {
-      push_front(head2->info);
+      push_front(head2->data);
       head2 = head2->next;
       ptr = _head;
     }
 
     while (ptr && ptr->next && head2)
     {
-      T val = head2->info;
-      if (ptr->info < val && ptr->next->info > val)
+      T val = head2->data;
+      if (ptr->data < val && ptr->next->data > val)
       {
         insert_after(ptr, val);
         head2 = head2->next;
@@ -239,7 +324,7 @@ void Forward_list<T>::marge_to_sorted_list(Node<T> *head2)
 
     while (head2)
     {
-      insert_after(ptr, head2->info);
+      insert_after(ptr, head2->data);
       head2 = head2->next;
       ptr = ptr->next;
     }
@@ -271,6 +356,30 @@ Forward_list<T> &Forward_list<T>::operator=(Forward_list<T> &&rhs)
 }
 
 template <class T>
+typename Forward_list<T>::iterator Forward_list<T>::begin()
+{
+  return Forward_list<T>::iterator{_head};
+}
+
+template <class T>
+typename Forward_list<T>::iterator Forward_list<T>::end()
+{
+  return Forward_list<T>::iterator{nullptr};
+}
+
+template <class T>
+typename Forward_list<T>::const_iterator Forward_list<T>::cbegin()
+{
+  return Forward_list<T>::const_iterator{_head};
+}
+
+template <class T>
+typename Forward_list<T>::const_iterator Forward_list<T>::cend()
+{
+  return Forward_list<T>::const_iterator{nullptr};
+}
+
+template <class T>
 Node<T> *Forward_list<T>::head() const { return _head; }
 
 template <class T>
@@ -285,7 +394,7 @@ Node<T> *Forward_list<T>::tail() const
 }
 
 template <class T>
-Node<T> *Forward_list<T>::get_middle_node() const
+typename Forward_list<T>::iterator Forward_list<T>::get_middle_node() const
 {
   Node<T> *fast = _head;
   Node<T> *slow = _head;
@@ -294,7 +403,7 @@ Node<T> *Forward_list<T>::get_middle_node() const
     fast = fast->next->next;
     slow = slow->next;
   }
-  return slow;
+  return iterator{slow};
 }
 
 template <class T>
@@ -370,13 +479,13 @@ void Forward_list<T>::insert(int pos, const Forward_list &li)
 {
   if (li._head != nullptr)
   {
-    Node<T> *start = new Node<T>(li._head->info);
+    Node<T> *start = new Node<T>(li._head->data);
     Node<T> *end = start;
 
     Node<T> *h = li.head()->next;
     while (h != nullptr)
     {
-      end->next = new Node<T>(h->info);
+      end->next = new Node<T>(h->data);
       end = end->next;
       h = h->next;
     }
@@ -431,14 +540,14 @@ void Forward_list<T>::delete_at(int pos)
 template <class T>
 void Forward_list<T>::remove(const T &val)
 {
-  if (_head && _head->info == val)
+  if (_head && _head->data == val)
   {
     pop_front();
     return;
   }
 
   Node<T> *ptr = _head;
-  while (ptr->next != nullptr && ptr->next->info != val)
+  while (ptr->next != nullptr && ptr->next->data != val)
   {
     ptr = ptr->next;
   }
@@ -456,13 +565,13 @@ void Forward_list<T>::copy(const Forward_list<T> &rhs)
   Node<T> *ptr = nullptr;
   if (_head == nullptr)
   {
-    ptr = new Node<T>(curr->info);
+    ptr = new Node<T>(curr->data);
     _head = ptr;
     curr = curr->next;
   }
   while (curr != nullptr)
   {
-    ptr->next = new Node<T>(curr->info);
+    ptr->next = new Node<T>(curr->data);
     ptr = ptr->next;
     curr = curr->next;
   }
@@ -485,6 +594,98 @@ void Forward_list<T>::insert(int pos, Node<T> *start, Node<T> *end)
   }
   end->next = ptr->next;
   ptr->next = start;
+}
+
+// iterator implem.
+template <typename T>
+Forward_list<T>::iterator::iterator(Node<T> *ptr)
+    : _ptr(ptr)
+{
+}
+
+template <typename T>
+T &Forward_list<T>::iterator::operator*()
+{
+  return _ptr->data;
+}
+
+template <typename T>
+T *Forward_list<T>::iterator::operator->()
+{
+  return &_ptr->data;
+}
+
+template <typename T>
+typename Forward_list<T>::iterator &Forward_list<T>::iterator::operator++()
+{
+  _ptr = _ptr->next;
+  return *this;
+}
+template <typename T>
+typename Forward_list<T>::iterator Forward_list<T>::iterator::operator++(int)
+{
+  iterator p = *this;
+  _ptr = _ptr->next;
+  return p;
+}
+
+template <typename T>
+bool Forward_list<T>::iterator::operator!=(const iterator &other) const
+{
+  return other._ptr != _ptr;
+}
+
+template <typename T>
+bool Forward_list<T>::iterator::operator==(const iterator &other) const
+{
+  return other._ptr == _ptr;
+}
+
+// const iterator
+template <typename T>
+Forward_list<T>::const_iterator::const_iterator(Node<T> *ptr)
+    : _ptr(ptr)
+{
+}
+
+// operators
+template <typename T>
+const T &Forward_list<T>::const_iterator::operator*() const
+{
+  return _ptr->data;
+}
+
+template <typename T>
+const T *Forward_list<T>::const_iterator::operator->() const
+{
+  return &_ptr->data;
+}
+
+template <typename T>
+typename Forward_list<T>::const_iterator &Forward_list<T>::const_iterator::operator++()
+{
+  _ptr = _ptr->next;
+  return *this;
+}
+
+template <typename T>
+typename Forward_list<T>::const_iterator Forward_list<T>::const_iterator::operator++(int)
+{
+  const_iterator p = *this;
+  _ptr = _ptr->next;
+  return p;
+}
+
+template <typename T>
+bool Forward_list<T>::const_iterator::operator!=(const const_iterator &other) const
+{
+  return other._ptr != _ptr;
+}
+
+template <typename T>
+bool Forward_list<T>::const_iterator::operator==(const const_iterator &other) const
+{
+  return other._ptr == _ptr;
 }
 
 #endif // FORWARD_LIST_H

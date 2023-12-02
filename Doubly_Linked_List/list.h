@@ -1,7 +1,8 @@
-#pragma one
+#ifndef LIST_H
+#define LIST_H
 #include <iostream>
 
-template <class T>
+template <typename T>
 struct Node
 {
   Node(const T &val, Node<T> *n = nullptr, Node<T> *p = nullptr)
@@ -11,9 +12,13 @@ struct Node
   T data;
 };
 
-template <class T>
+template <typename T>
 class List
 {
+public:
+  class iterator;
+  class const_iterator;
+
 public:
   List();                            // default ctor
   List(std::initializer_list<T> li); // initializer_list ctor
@@ -35,9 +40,9 @@ public:
   void pop_back();               // O(1)
 
   // delete
-  void delete_after(const Node<T> *p); // O(1)
-  void delete_at(int n);               // O(n)
-  void remove(const T &val);           // O(n)
+  void delete_after(Node<T> *p); // O(1)
+  void delete_at(int n);         // O(n)
+  void remove(const T &val);     // O(n)
 
   // methods
   void print_reverse() const;               // O(n)
@@ -46,8 +51,8 @@ public:
   T &front();                               // O(1)
   T &back();                                // O(1)
   void resize(int count, const T &val = 0); // O(n^2)
-  Node<T> *search(const T &val);            // O(n)
-  bool has_cyrcl();                         //
+  iterator search(const T &val);            // O(n)
+  bool has_cyrcl();                         // O(n)
   void marge_to_sorted_list(Node<T> *);     // O(n + m)
 
   // operators
@@ -55,9 +60,13 @@ public:
   List<T> &operator=(List<T> &&);      // move assignment
 
   // getters
-  Node<T> *head() const;
-  Node<T> *tail() const;
-  Node<T> *get_middle_node() const; // O(n / 2)
+  iterator begin();                 // O(1)
+  iterator end();                   // O(1)
+  const_iterator cbegin();          // O(1)
+  const_iterator cend();            // O(1)
+  Node<T> *head() const;            // O(1)
+  Node<T> *tail() const;            // O(1)
+  iterator get_middle_node() const; // O(n / 2)
   int size() const;                 // O(1)
 
 private:
@@ -68,12 +77,55 @@ private:
   Node<T> *_head = nullptr;
   Node<T> *_tail = nullptr;
   int _size = 0;
+
+public:
+  class iterator
+  {
+  public:
+    iterator() = default; // default ctor
+    iterator(Node<T> *);  // ctor
+
+    // operators
+    T &operator*();
+    T *operator->();
+    iterator &operator++();
+    iterator operator++(int);
+    iterator &operator--();
+    iterator operator--(int);
+
+    bool operator!=(const iterator &other) const;
+    bool operator==(const iterator &other) const;
+
+  private:
+    Node<T> *_ptr = nullptr;
+  };
+
+  class const_iterator
+  {
+  public:
+    const_iterator() = default;
+    const_iterator(Node<T> *ptr);
+
+    // operators
+    const T &operator*() const;
+    const T *operator->() const;
+    const_iterator &operator++();
+    const_iterator operator++(int);
+    const_iterator &operator--();
+    const_iterator operator--(int);
+
+    bool operator!=(const const_iterator &other) const;
+    bool operator==(const const_iterator &other) const;
+
+  private:
+    Node<T> *_ptr = nullptr;
+  };
 };
 
-template <class T>
+template <typename T>
 List<T>::List() {}
 
-template <class T>
+template <typename T>
 List<T>::List(std::initializer_list<T> li)
 {
   _head = _tail = new Node<T>(*li.begin());
@@ -89,13 +141,13 @@ List<T>::List(std::initializer_list<T> li)
   _tail = curr;
 }
 
-template <class T>
+template <typename T>
 List<T>::List(const List &rhs)
 {
   copy(rhs);
 }
 
-template <class T>
+template <typename T>
 List<T>::List(List &&rhs)
 {
   _head = rhs._head;
@@ -106,7 +158,7 @@ List<T>::List(List &&rhs)
   rhs._size = 0;
 }
 
-template <class T>
+template <typename T>
 List<T>::~List()
 {
   while (_head != nullptr)
@@ -118,7 +170,7 @@ List<T>::~List()
 }
 
 // insert
-template <class T>
+template <typename T>
 void List<T>::insert_after(Node<T> *p, const T &val)
 {
   if (p && p->next)
@@ -129,7 +181,7 @@ void List<T>::insert_after(Node<T> *p, const T &val)
     _size++;
   }
 }
-template <class T>
+template <typename T>
 void List<T>::insert_at(int pos, const T &val)
 {
   if (pos == 0)
@@ -151,7 +203,7 @@ void List<T>::insert_at(int pos, const T &val)
   insert_after(ptr, val);
 }
 
-template <class T>
+template <typename T>
 void List<T>::insert(int pos, std::initializer_list<T> li)
 {
   if (li.size() > 0)
@@ -171,7 +223,7 @@ void List<T>::insert(int pos, std::initializer_list<T> li)
   }
 }
 
-template <class T>
+template <typename T>
 void List<T>::insert(int pos, const T *arr, int N)
 {
   if (N > 0)
@@ -191,7 +243,7 @@ void List<T>::insert(int pos, const T *arr, int N)
   }
 }
 
-template <class T>
+template <typename T>
 void List<T>::insert(int pos, const List<T> &li)
 {
   if (li._head != nullptr)
@@ -213,7 +265,7 @@ void List<T>::insert(int pos, const List<T> &li)
 }
 
 // push / pop
-template <class T>
+template <typename T>
 void List<T>::push_front(const T &val)
 {
   Node<T> *node = new Node<T>(val, _head, nullptr);
@@ -229,7 +281,7 @@ void List<T>::push_front(const T &val)
   _size++;
 }
 
-template <class T>
+template <typename T>
 void List<T>::push_back(const T &val)
 {
   Node<T> *node = new Node<T>(val, nullptr, _tail);
@@ -245,7 +297,7 @@ void List<T>::push_back(const T &val)
   _size++;
 }
 
-template <class T>
+template <typename T>
 void List<T>::pop_front()
 {
   if (_head)
@@ -265,7 +317,7 @@ void List<T>::pop_front()
   }
 }
 
-template <class T>
+template <typename T>
 void List<T>::pop_back()
 {
   if (_tail)
@@ -286,8 +338,8 @@ void List<T>::pop_back()
 }
 
 // delete
-template <class T>
-void List<T>::delete_after(const Node<T> *p)
+template <typename T>
+void List<T>::delete_after(Node<T> *p)
 {
   if (p)
   {
@@ -302,7 +354,7 @@ void List<T>::delete_after(const Node<T> *p)
   }
 }
 
-template <class T>
+template <typename T>
 void List<T>::delete_at(int pos)
 {
   if (pos == 0)
@@ -324,7 +376,7 @@ void List<T>::delete_at(int pos)
   delete_after(ptr);
 }
 
-template <class T>
+template <typename T>
 void List<T>::remove(const T &val)
 {
   if (_head)
@@ -350,7 +402,7 @@ void List<T>::remove(const T &val)
 }
 
 // methods
-template <class T>
+template <typename T>
 void List<T>::print_reverse() const
 {
   Node<T> *ptr = _tail;
@@ -362,13 +414,13 @@ void List<T>::print_reverse() const
   std::cout << "\n";
 }
 
-template <class T>
+template <typename T>
 bool List<T>::empty() const
 {
   return _size == 0;
 }
 
-template <class T>
+template <typename T>
 void List<T>::clear()
 {
   while (_head != nullptr)
@@ -380,18 +432,18 @@ void List<T>::clear()
   _head = nullptr;
 }
 
-template <class T>
+template <typename T>
 T &List<T>::front()
 {
   return _head->data;
 }
-template <class T>
+template <typename T>
 T &List<T>::back()
 {
   return _tail->data;
 }
 
-template <class T>
+template <typename T>
 void List<T>::resize(int count, const T &val)
 {
   int interval = count - _size;
@@ -419,22 +471,22 @@ void List<T>::resize(int count, const T &val)
     }
   }
 }
-template <class T>
-Node<T> *List<T>::search(const T &val)
+template <typename T>
+typename List<T>::iterator List<T>::search(const T &val)
 {
   Node<T> *ptr = _head;
   while (ptr != nullptr)
   {
     if (ptr->data == val)
     {
-      return ptr;
+      return iterator{ptr};
     }
     ptr = ptr->next;
   }
-  return nullptr;
+  return end();
 }
 
-template <class T>
+template <typename T>
 bool List<T>::has_cyrcl()
 {
   if (_head == nullptr)
@@ -455,7 +507,7 @@ bool List<T>::has_cyrcl()
   return false;
 }
 
-template <class T>
+template <typename T>
 void List<T>::marge_to_sorted_list(Node<T> *h2)
 {
   if (_head)
@@ -498,7 +550,7 @@ void List<T>::marge_to_sorted_list(Node<T> *h2)
 }
 
 // operators
-template <class T>
+template <typename T>
 List<T> &List<T>::operator=(const List<T> &rhs)
 {
   if (this != &rhs)
@@ -510,7 +562,7 @@ List<T> &List<T>::operator=(const List<T> &rhs)
   return *this;
 }
 
-template <class T>
+template <typename T>
 List<T> &List<T>::operator=(List<T> &&rhs)
 {
   if (this != &rhs)
@@ -525,20 +577,44 @@ List<T> &List<T>::operator=(List<T> &&rhs)
   return *this;
 }
 
-template <class T>
+template <typename T>
+typename List<T>::iterator List<T>::begin()
+{
+  return List<T>::iterator{_head};
+}
+
+template <typename T>
+typename List<T>::iterator List<T>::end()
+{
+  return List<T>::iterator{_tail->next};
+}
+
+template <typename T>
+typename List<T>::const_iterator List<T>::cbegin()
+{
+  return List<T>::const_iterator{_head};
+}
+
+template <typename T>
+typename List<T>::const_iterator List<T>::cend()
+{
+  return List<T>::const_iterator{_tail->next};
+}
+
+template <typename T>
 Node<T> *List<T>::head() const
 {
   return _head;
 }
 
-template <class T>
+template <typename T>
 Node<T> *List<T>::tail() const
 {
   return _tail;
 }
 
-template <class T>
-Node<T> *List<T>::get_middle_node() const
+template <typename T>
+typename List<T>::iterator List<T>::get_middle_node() const
 {
   Node<T> *fast = _head;
   Node<T> *slow = _head;
@@ -547,16 +623,16 @@ Node<T> *List<T>::get_middle_node() const
     fast = fast->next->next;
     slow = slow->next;
   }
-  return slow;
+  return iterator{slow};
 }
 
-template <class T>
+template <typename T>
 int List<T>::size() const
 {
   return _size;
 }
 
-template <class T>
+template <typename T>
 void List<T>::copy(const List<T> &rhs)
 {
   Node<T> *curr = rhs._head;
@@ -584,7 +660,7 @@ void List<T>::copy(const List<T> &rhs)
   _tail = ptr;
 }
 
-template <class T>
+template <typename T>
 void List<T>::insert(int pos, Node<T> *start, Node<T> *end)
 {
   if (pos == 0)
@@ -614,3 +690,127 @@ void List<T>::insert(int pos, Node<T> *start, Node<T> *end)
   ptr->next = start;
   start->prev = ptr;
 }
+
+// iterator
+template <typename T>
+List<T>::iterator::iterator(Node<T> *p) : _ptr(p)
+{
+}
+
+// operators
+template <typename T>
+T &List<T>::iterator::operator*()
+{
+  return _ptr->data;
+}
+
+template <typename T>
+T *List<T>::iterator::operator->()
+{
+  return &_ptr->data;
+}
+
+template <typename T>
+typename List<T>::iterator &List<T>::iterator::operator++()
+{
+  _ptr = _ptr->next;
+  return *this;
+}
+
+template <typename T>
+typename List<T>::iterator List<T>::iterator::operator++(int)
+{
+  iterator p = *this;
+  _ptr = _ptr->next;
+  return p;
+}
+
+template <typename T>
+typename List<T>::iterator &List<T>::iterator::operator--()
+{
+  _ptr = _ptr->prev;
+  return *this;
+}
+
+template <typename T>
+typename List<T>::iterator List<T>::iterator::operator--(int)
+{
+  iterator p = *this;
+  _ptr = _ptr->prev;
+  return p;
+}
+
+template <typename T>
+bool List<T>::iterator::operator!=(const iterator &other) const
+{
+  return other._ptr != _ptr;
+}
+
+template <typename T>
+bool List<T>::iterator::operator==(const iterator &other) const
+{
+  return other._ptr == _ptr;
+}
+
+// const iterator
+template <typename T>
+List<T>::const_iterator::const_iterator(Node<T> *p) : _ptr(p)
+{
+}
+
+// operators
+template <typename T>
+const T &List<T>::const_iterator::operator*() const
+{
+  return _ptr->data;
+}
+
+template <typename T>
+const T *List<T>::const_iterator::operator->() const
+{
+  return &_ptr->data;
+}
+
+template <typename T>
+typename List<T>::const_iterator &List<T>::const_iterator::operator++()
+{
+  _ptr = _ptr->next;
+  return *this;
+}
+
+template <typename T>
+typename List<T>::const_iterator List<T>::const_iterator::operator++(int)
+{
+  const_iterator p = *this;
+  _ptr = _ptr->next;
+  return p;
+}
+
+template <typename T>
+typename List<T>::const_iterator &List<T>::const_iterator::operator--()
+{
+  _ptr = _ptr->prev;
+  return *this;
+}
+
+template <typename T>
+typename List<T>::const_iterator List<T>::const_iterator::operator--(int)
+{
+  const_iterator p = *this;
+  _ptr = _ptr->prev;
+  return p;
+}
+
+template <typename T>
+bool List<T>::const_iterator::operator!=(const const_iterator &other) const
+{
+  return other._ptr != _ptr;
+}
+
+template <typename T>
+bool List<T>::const_iterator::operator==(const const_iterator &other) const
+{
+  return other._ptr == _ptr;
+}
+
+#endif // LIST_H
