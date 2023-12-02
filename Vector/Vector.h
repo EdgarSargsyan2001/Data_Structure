@@ -5,80 +5,126 @@
 template <typename T>
 class Vector
 {
+public:
+  class Iterator;
+  class ConstIterator;
+  using value_type = T;
+  using size_type = std::size_t;
+  using reference = value_type &;
+  using const_reference = const value_type &;
+  using pointer = value_type *;
+  using const_pointer = const value_type *;
+  using iterator = Vector::Iterator;
+  using const_iterator = Vector::ConstIterator;
 
 public:
-  class iterator
-  {
-
-  public:
-    iterator() : m_vector(nullptr), m_nindex(-1){};
-    iterator(const Vector<T> *vector, int nindex);
-    const T &operator*() const;
-    iterator &operator++();
-    iterator operator++(int);
-    bool operator!=(const iterator &other) const;
-    bool operator<(const iterator &other) const;
-
-  private:
-    const Vector<T> *m_vector;
-    int m_nindex = -1;
-  };
-
-public:
-  Vector();                         // default ctor
-  Vector(std::initializer_list<T>); // initializer list ctor
-  Vector(const Vector &);           // copy ctor
-  Vector(Vector &&);                // move ctor
-  ~Vector();                        // dtor
+  Vector();                                  // default ctor
+  Vector(std::initializer_list<value_type>); // initializer list ctor
+  Vector(const Vector<value_type> &);        // copy ctor
+  Vector(Vector<value_type> &&);             // move ctor
+  ~Vector();                                 // dtor
 
 public:
   // push_back
-  void push_back(T);                 // ~O(1)
-  void push_back(T, int);            // ~O(1)
-  void push_back(T *, int);          // ~O(1)
-  void push_back(const Vector<T> &); // ~O(1)
+  void push_back(value_type);                 // ~O(1)
+  void push_back(value_type, int);            // ~O(1)
+  void push_back(pointer, int);               // ~O(1)
+  void push_back(const Vector<value_type> &); // ~O(1)
 
-  T pop_back();  // O(1)
-  void shrink(); // O(n)
+  value_type pop_back(); // O(1)
+  void shrink();         // O(n)
 
   // insert
-  void insert(T, int);                        // O(n)
-  void insert(std::initializer_list<T>, int); // O(n)
-  void insert(T *, int, int);                 // O(n)
-  void insert(const Vector<T> &, int);        // O(n)
-  void insert(T, int, int);                   // O(n)
+  void insert(value_type, int);                        // O(n)
+  void insert(std::initializer_list<value_type>, int); // O(n)
+  void insert(pointer, int, int);                      // O(n)
+  void insert(const Vector<value_type> &, int);        // O(n)
+  void insert(value_type, int, int);                   // O(n)
 
   // delete
   void remove(int);      // O(n)
   void remove(int, int); // O(n)
 
   // methods
-  int search(T);               // O(n)
-  T &at(int);                  // O(1)
-  bool empty();                // O(1)
-  void clear();                // O(1)
-  void reserve(int);           // O(n)
-  void resize(int, T val = 0); // O(n)
+  int search(value_type);               // O(n)
+  reference at(int);                    // O(1)
+  bool empty();                         // O(1)
+  void clear();                         // O(1)
+  void reserve(int);                    // O(n)
+  void resize(int, value_type val = 0); // O(n)
 
   // getters
-  int size();             // O(1)
-  int capacity();         // O(1)
-  iterator begin() const; // O(1)
-  iterator end() const;   // O(1)
+  size_type size();     // O(1)
+  size_type capacity(); // O(1)
+
+  iterator begin();                    // O(1)
+  iterator end();                      // O(1)
+  const const_iterator cbegin() const; // O(1)
+  const const_iterator cend() const;   // O(1)
 
   // operators
-  Vector<T> &operator=(const Vector &); // copy assignment
-  Vector<T> &operator=(Vector &&);      // move assignment
-  Vector<T> operator+(const Vector &);
-  T &operator[](int); // O(1)
+  Vector<value_type> &operator=(const Vector<value_type> &); // copy assignment
+  Vector<value_type> &operator=(Vector<value_type> &&);      // move assignment
+  Vector<value_type> operator+(const Vector<value_type> &);
+  reference operator[](int); // O(1)
 
 private:
-  void copy(const Vector &); // O(n)
+  void copy(const Vector<value_type> &); // O(n)
 
 private:
-  int m_capacity = 0;
-  int m_size = 0;
-  T *m_arr = nullptr;
+  size_type m_capacity = 0;
+  size_type m_size = 0;
+  pointer m_arr = nullptr;
+
+  // Iterator
+public:
+  class Iterator
+  {
+  public:
+    Iterator() = default;  // default ctor
+    Iterator(pointer ptr); // ctor
+
+    // operators
+    reference operator*();
+    pointer operator->();
+    iterator &operator++();
+    iterator operator++(int);
+    iterator &operator--();
+    iterator operator--(int);
+    T &operator[](int i);
+
+    bool operator!=(const iterator &other) const;
+    bool operator==(const iterator &other) const;
+    bool operator<(const iterator &other) const;
+    bool operator>(const iterator &other) const;
+
+  private:
+    pointer m_ptr = nullptr;
+  };
+
+  class ConstIterator
+  {
+  public:
+    ConstIterator() = default;
+    ConstIterator(const_pointer ptr);
+
+    // operators
+    const_reference operator*() const;
+    const_pointer operator->() const;
+    const_iterator &operator++();
+    const_iterator operator++(int);
+    const_iterator &operator--();
+    const_iterator operator--(int);
+    const_reference &operator[](int i) const;
+
+    bool operator!=(const const_iterator &other) const;
+    bool operator==(const const_iterator &other) const;
+    bool operator<(const const_iterator &other) const;
+    bool operator>(const const_iterator &other) const;
+
+  private:
+    const_pointer m_ptr = nullptr;
+  };
 };
 
 // default ctr
@@ -124,13 +170,13 @@ Vector<T>::~Vector()
 }
 
 template <typename T>
-int Vector<T>::size()
+typename Vector<T>::size_type Vector<T>::size()
 {
   return m_size;
 };
 
 template <typename T>
-int Vector<T>::capacity()
+typename Vector<T>::size_type Vector<T>::capacity()
 {
   return m_capacity;
 }
@@ -139,7 +185,7 @@ int Vector<T>::capacity()
 
 // copy assignment operator
 template <typename T>
-Vector<T> &Vector<T>::operator=(const Vector &rhs)
+Vector<typename Vector<T>::value_type> &Vector<T>::operator=(const Vector &rhs)
 {
   // std::cout << "call copy ctr\n";
   if (this != &rhs)
@@ -164,7 +210,7 @@ Vector<T> &Vector<T>::operator=(const Vector &rhs)
 
 template <typename T>
 
-Vector<T> &Vector<T>::operator=(Vector &&rhs) // move assignment
+Vector<typename Vector<T>::value_type> &Vector<T>::operator=(Vector &&rhs) // move assignment
 {
   if (this != &rhs)
   {
@@ -187,7 +233,7 @@ T &Vector<T>::operator[](int i)
 
 // Overloading + operator custom solution
 template <typename T>
-Vector<T> Vector<T>::operator+(const Vector &v)
+Vector<typename Vector<T>::value_type> Vector<T>::operator+(const Vector<value_type> &v)
 {
   Vector<T> r;
   r.m_capacity = m_capacity + v.m_capacity;
@@ -208,7 +254,7 @@ Vector<T> Vector<T>::operator+(const Vector &v)
 
 // private mathids
 template <typename T>
-void Vector<T>::copy(const Vector &rhs)
+void Vector<T>::copy(const Vector<value_type> &rhs)
 {
   m_capacity = rhs.m_capacity;
   m_size = rhs.m_size;
@@ -221,7 +267,7 @@ void Vector<T>::copy(const Vector &rhs)
 
 // other mathids
 template <typename T>
-void Vector<T>::push_back(T el)
+void Vector<T>::push_back(value_type el)
 {
   if (m_capacity == m_size)
   {
@@ -231,7 +277,7 @@ void Vector<T>::push_back(T el)
 }
 
 template <typename T>
-void Vector<T>::push_back(T val, int count)
+void Vector<T>::push_back(value_type val, int count)
 {
   for (int i = 0; i < count; ++i)
   {
@@ -240,7 +286,7 @@ void Vector<T>::push_back(T val, int count)
 }
 
 template <typename T>
-void Vector<T>::push_back(T *arr, int N)
+void Vector<T>::push_back(pointer arr, int N)
 {
   for (int i = 0; i < N; ++i)
   {
@@ -249,7 +295,7 @@ void Vector<T>::push_back(T *arr, int N)
 }
 
 template <typename T>
-void Vector<T>::push_back(const Vector<T> &v)
+void Vector<T>::push_back(const Vector<value_type> &v)
 {
   for (int i = 0; i < v.m_size; ++i)
   {
@@ -258,20 +304,30 @@ void Vector<T>::push_back(const Vector<T> &v)
 }
 
 template <typename T>
-T Vector<T>::pop_back()
+typename Vector<T>::value_type Vector<T>::pop_back()
 {
   return m_arr[--m_size];
 }
 
 template <typename T>
-typename Vector<T>::iterator Vector<T>::begin() const
+typename Vector<T>::iterator Vector<T>::begin()
 {
-  return Vector<T>::iterator{this, 0};
+  return Vector<T>::iterator{m_arr};
 }
 template <typename T>
-typename Vector<T>::iterator Vector<T>::end() const
+typename Vector<T>::iterator Vector<T>::end()
 {
-  return Vector<T>::iterator{this, m_size};
+  return Vector<T>::iterator{m_arr + m_size};
+}
+template <typename T>
+const typename Vector<T>::const_iterator Vector<T>::cbegin() const
+{
+  return Vector<T>::const_iterator{m_arr};
+}
+template <typename T>
+const typename Vector<T>::const_iterator Vector<T>::cend() const
+{
+  return Vector<T>::const_iterator{m_arr + m_size};
 }
 
 template <typename T>
@@ -288,7 +344,7 @@ void Vector<T>::shrink()
 }
 
 template <typename T>
-void Vector<T>::insert(T val, int index)
+void Vector<T>::insert(value_type val, int index)
 {
   if (index >= 0 && index <= m_size)
   {
@@ -306,7 +362,7 @@ void Vector<T>::insert(T val, int index)
 }
 
 template <typename T>
-void Vector<T>::insert(std::initializer_list<T> list, int index)
+void Vector<T>::insert(std::initializer_list<value_type> list, int index)
 {
   for (T el : list)
   {
@@ -315,7 +371,7 @@ void Vector<T>::insert(std::initializer_list<T> list, int index)
 }
 
 template <typename T>
-void Vector<T>::insert(T *arr, int N, int index)
+void Vector<T>::insert(pointer arr, int N, int index)
 {
   for (int i = 0; i < N; ++i)
   {
@@ -324,7 +380,7 @@ void Vector<T>::insert(T *arr, int N, int index)
 }
 
 template <typename T>
-void Vector<T>::insert(const Vector<T> &v, int index)
+void Vector<T>::insert(const Vector<value_type> &v, int index)
 {
   for (int el : v)
   {
@@ -333,7 +389,7 @@ void Vector<T>::insert(const Vector<T> &v, int index)
 }
 
 template <typename T>
-void Vector<T>::insert(T val, int count, int index)
+void Vector<T>::insert(value_type val, int count, int index)
 {
   for (int i = 0; i < count; ++i)
   {
@@ -368,7 +424,7 @@ void Vector<T>::remove(int start, int end)
 }
 
 template <typename T>
-int Vector<T>::search(T val)
+int Vector<T>::search(value_type val)
 {
   for (int i = 0; i < m_size; ++i)
   {
@@ -420,7 +476,7 @@ void Vector<T>::reserve(int count)
   }
 }
 template <typename T>
-void Vector<T>::resize(int count, T val)
+void Vector<T>::resize(int count, value_type val)
 {
   int interval = count - m_size;
   if (interval > 0)
@@ -438,53 +494,154 @@ void Vector<T>::resize(int count, T val)
 
 // iterator implem.
 template <typename T>
-Vector<T>::iterator::iterator(const Vector<T> *vector, int nindex)
-    : m_vector(vector), m_nindex(nindex)
+Vector<T>::Iterator::Iterator(pointer ptr)
+    : m_ptr(ptr)
 {
 }
 
 template <typename T>
-const T &Vector<T>::iterator::operator*() const
+T &Vector<T>::Iterator::operator*()
 {
-  if (m_vector == nullptr)
-    throw std::invalid_argument(":)");
-  return m_vector->m_arr[m_nindex];
+  return *m_ptr;
 }
 
 template <typename T>
-typename Vector<T>::iterator &Vector<T>::iterator::operator++()
+typename Vector<T>::pointer Vector<T>::Iterator::operator->()
 {
-  if (m_nindex == -1)
-    throw std::invalid_argument(":))");
+  return m_arr;
+}
 
-  ++m_nindex;
+template <typename T>
+typename Vector<T>::iterator &Vector<T>::Iterator::operator++()
+{
+  ++m_ptr;
   return *this;
 }
 
 template <typename T>
-typename Vector<T>::iterator Vector<T>::iterator::operator++(int)
+typename Vector<T>::iterator Vector<T>::Iterator::operator++(int)
 {
-  if (m_nindex == -1)
-    throw std::invalid_argument(":))");
-
-  iterator p = *this;
-  m_nindex++;
+  Iterator p = *this;
+  m_ptr++;
   return p;
 }
 
 template <typename T>
-bool Vector<T>::iterator::operator!=(const iterator &other) const
+typename Vector<T>::iterator &Vector<T>::Iterator::operator--()
 {
-  if (m_nindex == -1)
-    throw std::invalid_argument(":)))");
-  return m_nindex != other.m_nindex;
+  --m_ptr;
+  return *this;
 }
 
 template <typename T>
-bool Vector<T>::iterator::operator<(const iterator &other) const
+typename Vector<T>::iterator Vector<T>::Iterator::operator--(int)
 {
-  if (m_nindex == -1)
-    throw std::invalid_argument(":)))");
-  return m_nindex < other.m_nindex;
+  Iterator p = *this;
+  m_ptr--;
+  return p;
 }
+
+template <typename T>
+T &Vector<T>::Iterator::operator[](int i)
+{
+  return m_ptr[i];
+}
+
+template <typename T>
+bool Vector<T>::Iterator::operator!=(const iterator &other) const
+{
+  return m_ptr != other.m_ptr;
+}
+
+template <typename T>
+bool Vector<T>::Iterator::operator==(const iterator &other) const
+{
+  return m_ptr == other.m_ptr;
+}
+
+template <typename T>
+bool Vector<T>::Iterator::operator<(const iterator &other) const
+{
+  return m_ptr < other.m_ptr;
+}
+
+template <typename T>
+bool Vector<T>::Iterator::operator>(const iterator &other) const
+{
+  return m_ptr > other.m_ptr;
+}
+
+// const iterator
+template <typename T>
+Vector<T>::ConstIterator::ConstIterator(const_pointer ptr)
+    : m_ptr(ptr)
+{
+}
+
+template <typename T>
+typename Vector<T>::const_reference Vector<T>::ConstIterator::operator*() const
+{
+  return *m_ptr;
+}
+
+template <typename T>
+typename Vector<T>::const_pointer Vector<T>::ConstIterator::operator->() const
+{
+  return m_ptr;
+}
+
+template <typename T>
+typename Vector<T>::const_iterator &Vector<T>::ConstIterator::operator++()
+{
+  m_ptr++;
+  return *this;
+}
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::ConstIterator::operator++(int)
+{
+  const_iterator it = m_ptr;
+  ++m_ptr;
+  return it;
+}
+template <typename T>
+typename Vector<T>::const_iterator &Vector<T>::ConstIterator::operator--()
+{
+  m_ptr--;
+  return *this;
+}
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::ConstIterator::operator--(int)
+{
+  const_iterator it = m_ptr;
+  --m_ptr;
+  return it;
+}
+
+template <typename T>
+typename Vector<T>::const_reference &Vector<T>::ConstIterator::operator[](int i) const
+{
+  return m_ptr[i];
+}
+
+template <typename T>
+bool Vector<T>::ConstIterator::operator!=(const const_iterator &other) const
+{
+  return m_ptr != other.m_ptr;
+}
+template <typename T>
+bool Vector<T>::ConstIterator::operator==(const const_iterator &other) const
+{
+  return m_ptr == other.m_ptr;
+}
+template <typename T>
+bool Vector<T>::ConstIterator::operator<(const const_iterator &other) const
+{
+  return m_ptr < other.m_ptr;
+}
+template <typename T>
+bool Vector<T>::ConstIterator::operator>(const const_iterator &other) const
+{
+  return m_ptr > other.m_ptr;
+}
+
 #endif

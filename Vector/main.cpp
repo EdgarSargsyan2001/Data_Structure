@@ -1,5 +1,6 @@
 #include "Vector.h"
 #include <iostream>
+#include <vector>
 
 int main()
 {
@@ -13,11 +14,15 @@ int main()
             << "size " << v3.size() << '\n'
             << "capacity " << v3.capacity() << '\n';
 
-  // std::cout << v3.at(3) << '\n';
-  
+  // *v3.begin() = 444;
   // iterator
   for (int el : v3)
   {
     std::cout << el << " ";
   }
+
+  // for (Vector<int>::const_iterator it = v3.cbegin(); it < v3.cend(); it++)
+  // {
+  //   std::cout << it[0] << " ";
+  // }
 }
