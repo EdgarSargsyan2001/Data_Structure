@@ -7,16 +7,6 @@ template <ull bit_count>
 class Bitset
 {
 public:
-    friend std::ostream &operator<<(std::ostream &os, const Bitset<bit_count> &b)
-    {
-        for (int i = bit_count - 1; i >= 0; --i)
-        {
-            os << b[i];
-        }
-        return os;
-    }
-
-public:
     Bitset();
     ~Bitset();
     // === Modifiers ===

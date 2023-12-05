@@ -1,5 +1,15 @@
 #include <iostream>
-#include "bitset.h"
+#include "Bitset.h"
+
+template<ull bit_count>
+std::ostream &operator<<(std::ostream &os, const Bitset<bit_count> &b)
+    {
+        for (int i = bit_count - 1; i >= 0; --i)
+        {
+            os << b[i];
+        }
+        return os;
+    }
 
 int main()
 {
