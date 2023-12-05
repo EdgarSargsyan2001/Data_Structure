@@ -50,8 +50,9 @@ public:
   void reverse();                           // O(n)
   void reverse_rec(Node<int> *head);        // O(n) space complexity O(n)
   bool has_cyrcl();                         // O(n)
-  iterator detect_cycle();                  // O(n)
+  iterator detect_cycle();                  //
   void marge_to_sorted_list(Node<T> *);     // O( n + m)
+  void insertionSort();                     // O(n ^ 2)
 
   // operators
   Forward_list<T> &operator=(const Forward_list<T> &); // copy assignment
@@ -329,6 +330,42 @@ void Forward_list<T>::marge_to_sorted_list(Node<T> *head2)
       ptr = ptr->next;
     }
   }
+}
+
+template <class T>
+void Forward_list<T>::insertionSort()
+{
+  if (!_head || !_head->next)
+  {
+    return;
+  }
+
+  Node<T> *sorted = nullptr;
+  Node<T> *unsorted = _head;
+
+  while (unsorted)
+  {
+    Node<T> *curr = unsorted;
+    unsorted = unsorted->next;
+
+    if (sorted == nullptr || sorted->val > curr->val)
+    {
+      curr->next = sorted;
+      sorted = curr;
+    }
+    else
+    {
+      Node<T> *t = sorted;
+      while (t->next != nullptr && t->next->val < curr->val)
+      {
+        t = t->next;
+      }
+
+      curr->next = t->next;
+      t->next = curr;
+    }
+  }
+  _head = sorted;
 }
 
 // operators
