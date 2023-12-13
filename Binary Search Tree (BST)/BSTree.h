@@ -1,5 +1,6 @@
 #ifndef BSTREE_H
 #define BSTREE_H
+#include <iostream>
 
 template <typename T>
 struct Node
@@ -28,9 +29,9 @@ public:
     bool search(const T &val);
 
     // iterations
-    void inorder() const;   // l, root, r
-    void preorder() const;  // root, l, r
-    void postorder() const; // l, r, root
+    void inorder();   // l, root, r
+    void preorder();  // root, l, r
+    void postorder(); // l, r, root
 
     // gettres
     size_t get_height() const;
@@ -147,7 +148,7 @@ bool BSTree<T>::search(const T &val)
 
 // iterations
 template <typename T>
-void BSTree<T>::inorder() const
+void BSTree<T>::inorder()
 {
     inorder(_root);
 }
@@ -164,7 +165,7 @@ void BSTree<T>::inorder(Node<T> *r) // l, root, r
 }
 
 template <typename T>
-void BSTree<T>::preorder() const
+void BSTree<T>::preorder()
 {
     preorder(_root);
 }
@@ -180,7 +181,7 @@ void BSTree<T>::preorder(Node<T> *r) // root, l, r
 }
 
 template <typename T>
-void BSTree<T>::postorder() const
+void BSTree<T>::postorder()
 {
     postorder(_root);
 }
