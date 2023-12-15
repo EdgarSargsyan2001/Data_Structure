@@ -2,6 +2,7 @@
 #include "BSTree.h"
 #include <vector>
 #include <stack>
+#include <queue>
 
 template <typename T>
 std::vector<T> inorderTraversal(Node<T> *root);
@@ -12,20 +13,24 @@ std::vector<T> preorderTraversal(Node<T> *root);
 template <typename T>
 std::vector<T> postorderTraversal(Node<T> *root);
 
+template <typename T>
+std::vector<T> levelTraversal(Node<T> *root);
+
 int main()
 {
 
-    BSTree<int> bs = {50, 40, 55, 45, 30, 52, 999, 53};
+    BSTree<int> bs = {50, 40, 55, 45, 30, 52, 999, 53, 20};
     // std::cout << bs.get_height();
 
     // bs.remove(50);
-    // bs.print2D();
-    for (auto el : postorderTraversal(bs.root()))
+    bs.print2D();
+    std::cout << '\n';
+    for (auto el : levelTraversal(bs.root()))
     {
         std::cout << el << " ";
     }
-    std::cout << '\n';
-    bs.postorder();
+    // std::cout << '\n';
+    // bs.postorder();
 }
 
 template <typename T>
@@ -99,5 +104,26 @@ std::vector<T> postorderTraversal(Node<T> *root)
         s2.pop();
     }
 
+    return v;
+}
+
+template <typename T>
+std::vector<T> levelTraversal(Node<T> *root)
+{
+    std::queue<Node<T> *> q;
+    std::vector<T> v;
+    q.push(root);
+
+    while (!q.empty())
+    {
+        Node<T> *curr = q.front();
+        q.pop();
+        v.push_back(curr->data);
+        if (curr->left)
+            q.push(curr->left);
+
+        if (curr->right)
+            q.push(curr->right);
+    }
     return v;
 }

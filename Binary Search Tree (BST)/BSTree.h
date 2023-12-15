@@ -32,9 +32,10 @@ public:
     void inorder();   // l, root, r
     void preorder();  // root, l, r
     void postorder(); // l, r, root
+    void levelOrder();
 
     // gettres
-    size_t get_height() const;
+    size_t get_height();
     Node<T> *get_predecessor(Node<T> *);
     Node<T> *get_successor(Node<T> *);
 
@@ -47,6 +48,7 @@ private:
     void inorder(Node<T> *);
     void preorder(Node<T> *);
     void postorder(Node<T> *);
+    void levelOrder(Node<T> *root, int level);
 
     Node<T> *remove(Node<T> *, const T &val);
     Node<T> *get_min(Node<T> *);
@@ -187,6 +189,16 @@ void BSTree<T>::postorder()
 }
 
 template <typename T>
+void BSTree<T>::levelOrder()
+{
+    int h = get_height();
+    for (int i = 0; i <= h; ++i)
+    {
+        levelOrder(_root, i);
+    }
+}
+
+template <typename T>
 void BSTree<T>::postorder(Node<T> *r) // l, r, root
 {
     if (r != nullptr)
@@ -194,6 +206,24 @@ void BSTree<T>::postorder(Node<T> *r) // l, r, root
         postorder(r->left);
         postorder(r->right);
         std::cout << r->data << " ";
+    }
+}
+
+template <typename T>
+void BSTree<T>::levelOrder(Node<T> *root, int level)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+    if (level == 0)
+    {
+        std::cout << root->data << " ";
+    }
+    else if (level > 0)
+    {
+        levelOrder(root->left, level - 1);
+        levelOrder(root->right, level - 1);
     }
 }
 
@@ -238,7 +268,7 @@ Node<T> *BSTree<T>::remove(Node<T> *node, const T &val)
 
 // gettres
 template <typename T>
-size_t BSTree<T>::get_height() const
+size_t BSTree<T>::get_height()
 {
     return get_height(_root);
 }
