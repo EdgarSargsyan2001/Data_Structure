@@ -1,6 +1,7 @@
 #ifndef BSTREE_H
 #define BSTREE_H
 #include <iostream>
+#include <stack>
 
 template <typename T>
 struct Node
@@ -16,6 +17,8 @@ class BSTree
 {
 public:
     BSTree() = default;
+    BSTree(const BSTree &other);
+    BSTree(BSTree &&rhs);
     BSTree(std::initializer_list<T>);
     ~BSTree();
 
@@ -33,6 +36,10 @@ public:
     void preorder();  // root, l, r
     void postorder(); // l, r, root
     void levelOrder();
+
+    // operators
+    BSTree<T> &operator=(const BSTree &other);
+    BSTree<T> &operator=(BSTree &&rhs);
 
     // gettres
     size_t get_height();
@@ -53,12 +60,29 @@ private:
     Node<T> *remove(Node<T> *, const T &val);
     Node<T> *get_min(Node<T> *);
     Node<T> *get_max(Node<T> *);
+
+    void copy(const BSTree &other);
     void destroy_tree(Node<T> *leaf);
 
 private:
     Node<T> *_root = nullptr;
     size_t _size = 0;
 };
+
+template <typename T>
+BSTree<T>::BSTree(const BSTree &other) : _size(other._size)
+{
+    copy(other);
+}
+
+template <typename T>
+BSTree<T>::BSTree(BSTree &&rhs)
+{
+    _root = rhs._root;
+    _size = rhs._size;
+    rhs._root = nullptr;
+    rhs._size = 0;
+}
 
 template <typename T>
 BSTree<T>::BSTree(std::initializer_list<T> li)
@@ -123,6 +147,7 @@ template <typename T>
 void BSTree<T>::remove(const T &val)
 {
     remove(_root, val);
+    _size--;
 }
 
 // methods
@@ -189,16 +214,6 @@ void BSTree<T>::postorder()
 }
 
 template <typename T>
-void BSTree<T>::levelOrder()
-{
-    int h = get_height();
-    for (int i = 0; i <= h; ++i)
-    {
-        levelOrder(_root, i);
-    }
-}
-
-template <typename T>
 void BSTree<T>::postorder(Node<T> *r) // l, r, root
 {
     if (r != nullptr)
@@ -208,7 +223,15 @@ void BSTree<T>::postorder(Node<T> *r) // l, r, root
         std::cout << r->data << " ";
     }
 }
-
+template <typename T>
+void BSTree<T>::levelOrder()
+{
+    int h = get_height();
+    for (int i = 0; i <= h; ++i)
+    {
+        levelOrder(_root, i);
+    }
+}
 template <typename T>
 void BSTree<T>::levelOrder(Node<T> *root, int level)
 {
@@ -264,6 +287,34 @@ Node<T> *BSTree<T>::remove(Node<T> *node, const T &val)
         node->right = remove(node->right, tmp->data);
     }
     return node;
+}
+
+// operators
+template <typename T>
+BSTree<T> &BSTree<T>::operator=(const BSTree &other)
+{
+    if (&other != this)
+    {
+        destroy_tree(_root);
+        copy(other);
+        _size = other._size;
+    }
+
+    return *this;
+}
+
+template <typename T>
+BSTree<T> &BSTree<T>::operator=(BSTree &&rhs)
+{
+    if (&rhs != this)
+    {
+        _root = rhs._root;
+        _size = rhs._size;
+        rhs._root = nullptr;
+        rhs._size = 0;
+    }
+
+    return *this;
 }
 
 // gettres
@@ -374,6 +425,25 @@ Node<T> *BSTree<T>::get_max(Node<T> *node)
         node = node->right;
     }
     return node;
+}
+
+template <typename T>
+void BSTree<T>::copy(const BSTree &other)
+{
+    std::stack<Node<T> *> s;
+    s.push(other._root);
+    while (!s.empty())
+    {
+        Node<T> *curr = s.top();
+        s.pop();
+
+        insert(curr->data);
+
+        if (curr->right)
+            s.push(curr->right);
+        if (curr->left)
+            s.push(curr->left);
+    }
 }
 
 template <typename T>

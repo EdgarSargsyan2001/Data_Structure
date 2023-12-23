@@ -2,6 +2,7 @@
 #define AVLTREE_H
 #include <iostream>
 #include <math.h>
+#include <stack>
 
 template <typename T>
 struct Node
@@ -17,6 +18,8 @@ class AVLTree
 {
 public:
     AVLTree() = default;
+    AVLTree(const AVLTree &other);
+    AVLTree(AVLTree &&rhs);
     AVLTree(std::initializer_list<T>);
     ~AVLTree();
 
@@ -34,6 +37,10 @@ public:
     void preorder();  // root, l, r
     void postorder(); // l, r, root
     void levelOrder();
+
+    // operators
+    AVLTree<T> &operator=(const AVLTree &other);
+    AVLTree<T> &operator=(AVLTree &&rhs);
 
     // gettres
     Node<T> *root() { return _root; };
@@ -62,12 +69,28 @@ private:
 
     Node<T> *get_min(Node<T> *);
     Node<T> *get_max(Node<T> *);
+    void copy(const AVLTree &other);
     void destroy_tree(Node<T> *);
 
 private:
     Node<T> *_root = nullptr;
     size_t _size = 0;
 };
+
+template <typename T>
+AVLTree<T>::AVLTree(const AVLTree &other)
+{
+    copy(other);
+}
+
+template <typename T>
+AVLTree<T>::AVLTree(AVLTree &&rhs)
+{
+    _root = rhs._root;
+    _size = rhs._size;
+    rhs._root = nullptr;
+    rhs._size = 0;
+}
 
 template <typename T>
 AVLTree<T>::AVLTree(std::initializer_list<T> li)
@@ -114,6 +137,7 @@ template <typename T>
 void AVLTree<T>::remove(const T &val)
 {
     _root = remove(_root, val);
+    _size--;
 }
 
 // methods
@@ -178,17 +202,6 @@ void AVLTree<T>::postorder()
 {
     postorder(_root);
 }
-
-template <typename T>
-void AVLTree<T>::levelOrder()
-{
-    int h = height();
-    for (int i = 1; i <= h; ++i)
-    {
-        levelOrder(_root, i);
-    }
-}
-
 template <typename T>
 void AVLTree<T>::postorder(Node<T> *r) // l, r, root
 {
@@ -200,6 +213,15 @@ void AVLTree<T>::postorder(Node<T> *r) // l, r, root
     }
 }
 
+template <typename T>
+void AVLTree<T>::levelOrder()
+{
+    int h = height();
+    for (int i = 1; i <= h; ++i)
+    {
+        levelOrder(_root, i);
+    }
+}
 template <typename T>
 void AVLTree<T>::levelOrder(Node<T> *root, int level)
 {
@@ -216,6 +238,34 @@ void AVLTree<T>::levelOrder(Node<T> *root, int level)
         levelOrder(root->left, level - 1);
         levelOrder(root->right, level - 1);
     }
+}
+
+// operators
+template <typename T>
+AVLTree<T> &AVLTree<T>::operator=(const AVLTree &other)
+{
+    if (&other != this)
+    {
+        destroy_tree(_root);
+        copy(other);
+        _size = other._size;
+    }
+
+    return *this;
+}
+
+template <typename T>
+AVLTree<T> &AVLTree<T>::operator=(AVLTree &&rhs)
+{
+    if (&rhs != this)
+    {
+        _root = rhs._root;
+        _size = rhs._size;
+        rhs._root = nullptr;
+        rhs._size = 0;
+    }
+
+    return *this;
 }
 
 template <typename T>
@@ -272,7 +322,7 @@ template <typename T>
 size_t AVLTree<T>::height(Node<T> *temp)
 {
     size_t h = 0;
-    if (temp != NULL)
+    if (temp != nullptr)
     {
         size_t l_height = height(temp->left);
         size_t r_height = height(temp->right);
@@ -378,6 +428,25 @@ Node<T> *AVLTree<T>::get_max(Node<T> *node)
         node = node->right;
     }
     return node;
+}
+
+template <typename T>
+void AVLTree<T>::copy(const AVLTree &other)
+{
+    std::stack<Node<T> *> s;
+    s.push(other._root);
+    while (!s.empty())
+    {
+        Node<T> *curr = s.top();
+        s.pop();
+
+        insert(curr->data);
+
+        if (curr->right)
+            s.push(curr->right);
+        if (curr->left)
+            s.push(curr->left);
+    }
 }
 
 template <typename T>
