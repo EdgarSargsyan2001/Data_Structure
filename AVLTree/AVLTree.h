@@ -81,6 +81,7 @@ template <typename T>
 AVLTree<T>::AVLTree(const AVLTree &other)
 {
     copy(other);
+    _size = other._size;
 }
 
 template <typename T>
