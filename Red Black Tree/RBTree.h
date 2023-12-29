@@ -33,7 +33,7 @@ public:
     bool search(const T &val); // O(log(n))  : { h <= 2 * log(n+1) }
 
     // delete
-    // void remove(const T &val);
+    void remove(const T &val);
 
     // iterations
     void inorder();   // l, root, r
@@ -56,6 +56,9 @@ public:
     Node<T> *get_max(Node<T> *);
 
 private:
+    void remove(Node<T> *);
+
+    void delete_fix_up(Node<T> *x);
     void insert_fix_up(Node<T> *z);
 
     void inorder(Node<T> *);
@@ -66,6 +69,7 @@ private:
 
     Node<T> *left_rotate(Node<T> *node);
     Node<T> *right_rotate(Node<T> *node);
+    void transplant(Node<T> *node1, Node<T> *node2);
 
     void copy(const RBTree &other);
     void destroy_tree(Node<T> *);
@@ -165,6 +169,28 @@ bool RBTree<T>::search(const T &val)
     }
 
     return false;
+}
+
+template <typename T>
+void RBTree<T>::remove(const T &val)
+{
+    Node<T> *tmp = _root;
+    while (tmp)
+    {
+        if (tmp->data == val)
+        {
+            remove(tmp);
+            break;
+        }
+        if (tmp->data > val)
+        {
+            tmp = tmp->left;
+        }
+        else
+        {
+            tmp = tmp->right;
+        }
+    }
 }
 
 // iterations
@@ -269,6 +295,139 @@ RBTree<T> &RBTree<T>::operator=(RBTree &&rhs)
     }
 
     return *this;
+}
+
+template <typename T>
+void RBTree<T>::remove(Node<T> *node)
+{
+    // std::cout << "data  " << node->data;
+
+    Node<T> *tmp = node;
+    bool origColor = tmp->color;
+    Node<T> *x = nullptr;
+
+    if (node->left == NIL)
+    {
+
+        x = node->right;
+        transplant(node, node->right);
+        // std::cout << "data  " << tmp->data;
+        // std::cout << "x color " << x->color;
+    }
+    else if (node->right == NIL)
+    {
+        x = node->left;
+        transplant(node, node->left);
+    }
+    else
+    {
+        tmp = get_max(node->left);
+        x = tmp->left;
+
+        origColor = tmp->color;
+        if (tmp->parent == node)
+        {
+            x->parent = tmp;
+        }
+        else
+        {
+            transplant(tmp, tmp->left);
+            tmp->left = node->left;
+            tmp->left->parent = tmp;
+        }
+        transplant(node, tmp);
+        tmp->right = node->right;
+        tmp->right->parent = tmp;
+        tmp->color = node->color;
+    }
+    if (origColor == false) // origColor == BLACK
+    {
+        delete_fix_up(x);
+        delete node;
+    }
+}
+
+template <typename T>
+void RBTree<T>::delete_fix_up(Node<T> *x)
+{
+
+    // std::cout << "data  " << x->data << '\n';
+    // std::cout << "color  " << x->color << '\n';
+
+    while (x != _root && x->color == false)
+    {
+        if (x == x->parent->left)
+        {
+            Node<T> *sibling = x->parent->right;
+            if (sibling->color == true) // case 1
+            {
+                sibling->color = false;
+                x->parent->color = true;
+                left_rotate(x->parent);
+                sibling = x->parent->right;
+            }
+            if (sibling->left->color == false && sibling->right->color == false)
+            { // case 2
+                sibling->color = true;
+                x = x->parent;
+            }
+            else
+            {
+                if (sibling->right->color == false) // case 3
+                {
+                    sibling->left->color = false;
+                    sibling->color = true;
+                    right_rotate(sibling);
+                    sibling = x->parent->right;
+                }
+
+                // case 4
+                sibling->color = x->parent->color;
+                x->parent->color = false;
+                sibling->right->color = false;
+                left_rotate(x->parent);
+                x = _root;
+            }
+        }
+        else
+        {
+
+            Node<T> *sibling = x->parent->left;
+            if (sibling->color == true) // case 1
+            {
+
+                sibling->color = false;
+                x->parent->color = true;
+                right_rotate(x->parent);
+                sibling = x->parent->left;
+            }
+            if (sibling->left->color == false && sibling->right->color == false)
+            { // case 2
+                sibling->color = true;
+                x = x->parent;
+            }
+            else
+            {
+
+                if (sibling->left->color == false) // case 3
+                {
+                    sibling->right->color = false;
+                    sibling->color = true;
+                    left_rotate(sibling);
+                    sibling = x->parent->left;
+                }
+
+                // case 4
+                sibling->color = x->parent->color;
+                x->parent->color = false;
+                sibling->left->color = false;
+                right_rotate(x->parent);
+                x = _root;
+            }
+        }
+    }
+
+    x->color = false; // x or _root->color = BLACK
 }
 
 template <typename T>
@@ -409,6 +568,24 @@ Node<T> *RBTree<T>::right_rotate(Node<T> *node)
     tmp->right = node;
     node->parent = tmp;
     return tmp;
+}
+
+template <typename T>
+void RBTree<T>::transplant(Node<T> *node1, Node<T> *node2)
+{
+    if (node1->parent == NIL)
+    {
+        _root = node2;
+    }
+    else if (node1 == node1->parent->left)
+    {
+        node1->parent->left = node2;
+    }
+    else
+    {
+        node1->parent->right = node2;
+    }
+    node2->parent = node1->parent;
 }
 
 template <typename T>
