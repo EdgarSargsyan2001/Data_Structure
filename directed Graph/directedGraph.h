@@ -24,7 +24,7 @@ public:
 private:
     void find_path(int u, int dst, std::vector<bool> &visited, std::vector<int> &v, std::vector<std::vector<int>> &ans);
     bool is_cyclic_util(int v, std::vector<bool> &visited, std::vector<bool> &onStack);
-    void topological_sort_util(int v, std::vector<bool> &visited, std::stack<int> &Stack);
+    bool topological_sort_util(int v, std::vector<bool> &visited, std::vector<bool> &onStack, std::stack<int> &Stack);
 
 private:
     std::vector<int> *_graph;
@@ -86,12 +86,17 @@ void DirectedGraph::topological_sort()
 {
     std::stack<int> stack;
     std::vector<bool> visited(_size, false);
+    std::vector<bool> onStack(_size, false);
 
     for (int i = 0; i < _size; ++i)
     {
         if (!visited[i])
         {
-            topological_sort_util(i, visited, stack);
+            if (topological_sort_util(i, visited, onStack, stack))
+            {
+                std::cout << "has a circle: can't sort topological\n";
+                return;
+            }
         }
     }
     while (!stack.empty())
@@ -101,19 +106,28 @@ void DirectedGraph::topological_sort()
     }
 }
 
-void DirectedGraph::topological_sort_util(int v, std::vector<bool> &visited, std::stack<int> &stack)
+bool DirectedGraph::topological_sort_util(int v, std::vector<bool> &visited, std::vector<bool> &onStack, std::stack<int> &stack)
 {
     visited[v] = true;
+    onStack[v] = true;
 
     for (int neighbor : _graph[v])
     {
         if (!visited[neighbor])
         {
-            topological_sort_util(neighbor, visited, stack);
+            if(topological_sort_util(neighbor, visited, onStack, stack)){
+                return true;
+            }
+        }
+        else if (onStack[neighbor])
+        {
+            return true; // has a circle
         }
     }
 
+    onStack[v] = false;
     stack.push(v);
+    return false;
 }
 
 void DirectedGraph::BFS()
