@@ -16,8 +16,9 @@ public:
     void BFS(); // O(V + E)
     void DFS(); // O(V + E)
     bool detect_circle();
-    std::vector<std::vector<int>> find_all_path(int src, int dst);
     void topological_sort();
+    std::vector<int> kohns_algorithm();
+    std::vector<std::vector<int>> find_all_path(int src, int dst);
 
     void print();
 
@@ -115,7 +116,8 @@ bool DirectedGraph::topological_sort_util(int v, std::vector<bool> &visited, std
     {
         if (!visited[neighbor])
         {
-            if(topological_sort_util(neighbor, visited, onStack, stack)){
+            if (topological_sort_util(neighbor, visited, onStack, stack))
+            {
                 return true;
             }
         }
@@ -128,6 +130,51 @@ bool DirectedGraph::topological_sort_util(int v, std::vector<bool> &visited, std
     onStack[v] = false;
     stack.push(v);
     return false;
+}
+
+std::vector<int> DirectedGraph::kohns_algorithm()
+{
+    int inDegree[_size] = {0};
+    for (int i = 0; i < _size; ++i)
+    {
+        for (int vertex : _graph[i])
+        {
+            ++inDegree[vertex];
+        }
+    }
+
+    std::queue<int> q;
+    for (int i = 0; i < _size; ++i)
+    {
+        if (inDegree[i] == 0)
+        {
+            q.push(i);
+        }
+    }
+
+    std::vector<int> ans;
+    while (!q.empty())
+    {
+        int v = q.front();
+        q.pop();
+        ans.push_back(v);
+
+        for (int u : _graph[v])
+        {
+            --inDegree[u];
+            if (inDegree[u] == 0)
+            {
+                q.push(u);
+            }
+        }
+    }
+    if (ans.size() != _size)
+    {
+        std::cout << "There exists a cycle in the graph\n";
+        return {};
+    }
+
+    return ans;
 }
 
 void DirectedGraph::BFS()
