@@ -7,6 +7,7 @@
 
 class DirectedGraph // directed graph
 {
+
 public:
     DirectedGraph(const int N);
     ~DirectedGraph();
@@ -19,6 +20,17 @@ public:
     void topological_sort();
     std::vector<int> kohns_algorithm();
     std::vector<std::vector<int>> find_all_path(int src, int dst);
+
+    // ===== find SCC =====
+
+    // Kosaraju algorithm
+    std::vector<std::vector<int>> kosaraju_algorithm(); // O(3 * (V + E))
+    void fill_order(int v, std::vector<bool> &visited, std::stack<int> &Stack);
+    void DFS_util(int v, std::vector<bool> &visited, std::vector<int> &component);
+
+    // Tarjan algorithm
+    std::vector<std::vector<int>> tarjan_algorithm(); // O (V + E)
+    void tarjan_util(int v, std::vector<int> &disc, std::vector<int> &low, std::stack<int> &Stack, std::vector<bool> &onStack, std::vector<std::vector<int>> &scc);
 
     void print();
 
@@ -290,6 +302,127 @@ void DirectedGraph::print()
             std::cout << el << ", ";
         }
         std::cout << "\n";
+    }
+}
+
+// ===============  kosaraju_algorithm ================ // find Strongly Connected Components
+std::vector<std::vector<int>> DirectedGraph::kosaraju_algorithm()
+{
+    // Step 1: Fill the stack by using DFS
+    std::stack<int> Stack;
+    std::vector<bool> visited(_size, false);
+    for (int i = 0; i < _size; i++)
+    {
+        if (!visited[i])
+        {
+            fill_order(i, visited, Stack);
+        }
+    }
+
+    // Step 2: Transpose the graph
+    DirectedGraph transposed_graph(_size);
+    for (int v = 0; v < _size; ++v)
+    {
+        for (int u : _graph[v])
+        {
+            transposed_graph.add_edge(u, v);
+        }
+    }
+
+    // Step 3: Perform DFS on the transposed graph and store strongly connected components
+
+    std::vector<std::vector<int>> SCC; // Strongly Connected Components
+    visited.assign(_size, false);
+    while (!Stack.empty())
+    {
+        int v = Stack.top();
+        Stack.pop();
+        if (!visited[v])
+        {
+            std::vector<int> component;
+            transposed_graph.DFS_util(v, visited, component);
+            SCC.push_back(component);
+        }
+    }
+    return SCC;
+}
+void DirectedGraph::fill_order(int v, std::vector<bool> &visited, std::stack<int> &Stack)
+{
+    visited[v] = true;
+    for (int u : _graph[v])
+    {
+        if (!visited[u])
+        {
+            fill_order(u, visited, Stack);
+        }
+    }
+    Stack.push(v);
+}
+void DirectedGraph::DFS_util(int v, std::vector<bool> &visited, std::vector<int> &component)
+{
+    visited[v] = true;
+    component.push_back(v);
+    for (int u : _graph[v])
+    {
+        if (!visited[u])
+        {
+            DFS_util(u, visited, component);
+        }
+    }
+}
+
+// ====================== Tarjan algorithm ======================
+std::vector<std::vector<int>> DirectedGraph::tarjan_algorithm()
+{
+    std::vector<int> disc(_size, -1); // Discovery time of vertices
+    std::vector<int> low(_size, -1);  // Earliest visited vertex reachable from subtree rooted with the current vertex
+    std::stack<int> Stack;
+    std::vector<bool> onStack(_size, false); // To keep track of whether a vertex is on the stack
+    std::vector<std::vector<int>> scc;
+
+    for (int i = 0; i < _size; ++i)
+    {
+        if (disc[i] == -1)
+        {
+            tarjan_util(i, disc, low, Stack, onStack, scc);
+        }
+    }
+    return scc;
+}
+void DirectedGraph::tarjan_util(int v, std::vector<int> &disc, std::vector<int> &low, std::stack<int> &Stack, std::vector<bool> &onStack, std::vector<std::vector<int>> &scc)
+{
+    static int time = 0;
+    disc[v] = low[v] = time++;
+    onStack[v] = true;
+    Stack.push(v);
+
+    for (int u : _graph[v])
+    {
+        if (disc[u] == -1)
+        {
+            tarjan_util(u, disc, low, Stack, onStack, scc);
+            low[v] = std::min(low[v], low[u]);
+        }
+        else if (onStack[u])
+        {
+            low[v] = std::min(low[v], disc[u]);
+        }
+    }
+
+    if (low[v] == disc[v])
+    {
+        std::vector<int> component;
+        while (1)
+        {
+            int u = Stack.top();
+            Stack.pop();
+            onStack[u] = false;
+            component.push_back(u);
+
+            if (u == v)
+                break;
+        }
+        scc.push_back(component);
     }
 }
 
