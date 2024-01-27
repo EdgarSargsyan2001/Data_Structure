@@ -19,8 +19,8 @@ public:
     void shortestPath(int source);
     void topologicalSortUtil(int v, std::vector<bool> &visited, std::stack<int> &Stack);
 
-    
-    void dijkstra(int source);
+    void dijkstra(int source); // O((V + E) * log(V))
+    void bellman(int source);  // algorithm shortest path
 
     void print();
 
@@ -128,7 +128,46 @@ void WeightedGraph::dijkstra(int source)
             }
         }
     }
-    std::cout << "Shortest distances from source " << source << ":\n";
+    std::cout << "Shortest distances from source 'dijkstra'" << source << ":\n";
+    for (int i = 0; i < _size; ++i)
+    {
+        std::cout << "Vertex " << i << ": " << distance[i] << '\n';
+    }
+}
+
+void WeightedGraph::bellman(int source)
+{
+    std::vector<int> distance(_size, INT_MAX);
+    distance[source] = 0;
+
+    for (int u = 0; u < _size; ++u)
+    {
+        for (auto pair : _graph[u])
+        {
+            int v = pair.first;
+            int weight = pair.second;
+            if (distance[u] != INT_MAX && distance[u] + weight < distance[v])
+            {
+                distance[v] = distance[u] + weight;
+            }
+        }
+    }
+
+    for (int u = 0; u < _size; ++u)
+    {
+        for (auto pair : _graph[u])
+        {
+            int v = pair.first;
+            int weight = pair.second;
+            if (distance[u] != INT_MAX && distance[u] + weight < distance[v])
+            {
+                printf("Graph contains negative weight cycle");
+                return; 
+            }
+        }
+    }
+
+    std::cout << "Shortest distances from source 'bellman'" << source << ":\n";
     for (int i = 0; i < _size; ++i)
     {
         std::cout << "Vertex " << i << ": " << distance[i] << '\n';

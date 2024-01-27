@@ -16,6 +16,8 @@ int main()
 
     // g.print();
     // g.shortestPath(0);
-    g.dijkstra(0);
+    g.dijkstra(1);
+    std::cout << "\n";
+    g.bellman(1);
     std::cout << "ok";
 }
